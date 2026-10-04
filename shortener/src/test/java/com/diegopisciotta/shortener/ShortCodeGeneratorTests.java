@@ -48,7 +48,7 @@ class ShortCodeGeneratorTest {
     }
 
     @Test
-    void randomCodeFixesQuietlyInvalidSizeMoreThanSixteen() {
+    void randomCodeFixesQuietlyClamp() {
         String code = ShortCodeGenerator.randomCode(17);
         assertThat(code).hasSize(16);
     }
