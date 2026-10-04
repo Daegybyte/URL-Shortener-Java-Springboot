@@ -1,5 +1,3 @@
-// The returned length matches the argument
-
 package com.diegopisciotta.shortener;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +19,7 @@ class ShortCodeGeneratorTest {
     // Every character is in the alphabet
     @Test
     void randomCodeUsesOnlyAlnums() {
-        String code = ShortCodeGenerator.randomCode(1000);
+        String code = ShortCodeGenerator.randomCode(1_000);
 
         assertThat(code).matches("[0-9A-Za-z]+");
     }
@@ -47,5 +45,11 @@ class ShortCodeGeneratorTest {
     void randomCodeFixesQuietlyInvalidSizeNegativeNumber() {
         String code = ShortCodeGenerator.randomCode(-1);
         assertThat(code).hasSize(7);
+    }
+
+    @Test
+    void randomCodeFixesQuietlyInvalidSizeMoreThanSixteen() {
+        String code = ShortCodeGenerator.randomCode(17);
+        assertThat(code).hasSize(16);
     }
 }
