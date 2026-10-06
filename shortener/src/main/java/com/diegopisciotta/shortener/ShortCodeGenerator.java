@@ -13,7 +13,10 @@ public final class ShortCodeGenerator {
     private ShortCodeGenerator() {
     }
 
-    public static String randomCode(int length) {
+    /**
+     * Generates cryptographically secure random short code
+     */
+    public static String randomShortCode(int length) {
         // Fix quietly instead of failing
         if (length < 1) {
             length = DEFAULT_LENGTH;
@@ -26,4 +29,5 @@ public final class ShortCodeGenerator {
         }
         return new String(out);
     }
+
 }
