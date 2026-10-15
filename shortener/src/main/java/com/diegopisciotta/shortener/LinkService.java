@@ -1,9 +1,11 @@
 package com.diegopisciotta.shortener;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -11,11 +13,15 @@ public class LinkService {
 
     private static final int CODE_LENGTH = 7;
     private static final int MAX_ATTEMPTS = 5;
+    private static final String CACHE_PREFIX = "link:";
+    private static final Duration MAX_CACHE_TTL = Duration.ofHours(1);
 
     private final LinkRepository linkRepository;
+    private final StringRedisTemplate redis;
 
-    public LinkService(LinkRepository linkRepository) {
+    public LinkService(LinkRepository linkRepository, StringRedisTemplate redis) {
         this.linkRepository = linkRepository;
+        this.redis = redis;
     }
 
     /**
@@ -57,5 +63,39 @@ public class LinkService {
             return Optional.empty();
         }
         return found;
+    }
+
+    /**
+     * Finds the destination URL for a short code, checking Redis before the database.
+     * On a cache miss it falls back to resolve() and stores the result in Redis.
+     * Only links that resolve successfully are cached, so missing, inactive, and
+     * expired links are never stored. The cache entry lives for at most
+     * MAX_CACHE_TTL, or until the link expires if that comes sooner.
+     */
+    public Optional<String> findDestination(String code) {
+        String key = CACHE_PREFIX + code;
+
+        String cached = redis.opsForValue().get(key);
+        if (cached != null) {
+            return Optional.of(cached);
+        }
+
+        Optional<Link> found = resolve(code);
+        if (found.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Link link = found.get();
+        Duration ttl = MAX_CACHE_TTL;
+        if (link.getExpiresAt() != null) {
+            Duration untilExpiry = Duration.between(Instant.now(), link.getExpiresAt());
+            if (untilExpiry.compareTo(ttl) < 0) {
+                ttl = untilExpiry;
+            }
+        }
+        if (ttl.isPositive()) {
+            redis.opsForValue().set(key, link.getOriginalUrl(), ttl);
+        }
+        return Optional.of(link.getOriginalUrl());
     }
 }

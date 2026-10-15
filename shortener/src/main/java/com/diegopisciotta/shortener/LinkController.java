@@ -40,14 +40,14 @@ public class LinkController {
 
     @GetMapping("/{shortCode}")
     public ResponseEntity<Void> redirect(@PathVariable String shortCode) {
-        Optional<Link> found = linkService.resolve(shortCode);
+        Optional<String> destination = linkService.findDestination(shortCode);
 
-        if (found.isEmpty()) {
+        if (destination.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         // Returns FOUND -> 302 server side redirect for analytics
         return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create(found.get().getOriginalUrl()))
+                .location(URI.create(destination.get()))
                 .build();
     }
 }
