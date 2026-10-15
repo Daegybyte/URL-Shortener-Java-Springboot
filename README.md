@@ -1,4 +1,4 @@
-![CI](https://github.com/YOUR-USERNAME/YOUR-REPO/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/Daegybyte/URL-Shortener-Java-Springboot/actions/workflows/ci.yml/badge.svg)](https://github.com/Daegybyte/URL-Shortener-Java-Springboot/actions/workflows/ci.yml)
 
 # URL Shortener
 
